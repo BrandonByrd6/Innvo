@@ -10,4 +10,9 @@ public class ApplicationDbContext : IdentityDbContext<UserEntity, IdentityRole<i
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options) { }
 
+    public DbSet<ItemEntity> Items { get; set; }
+    public DbSet<UnitOfMesureEntity> UOMs { get; set; }
+    public DbSet<InventoryEntity> Inventories { get; set; }
+    public DbSet<TransactionEntity> Transactions { get; set; }
+    public DbSet<TransactionItemRecordEntity> TransactionItemRecords { get; set; }
 }

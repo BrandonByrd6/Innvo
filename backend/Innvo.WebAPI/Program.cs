@@ -1,6 +1,7 @@
 using System.Text;
 using Innvo.Data;
 using Innvo.Data.Entities;
+using Innvo.Services.Item;
 using Innvo.Services.Token;
 using Innvo.Services.User;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -13,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IItemService, ItemService>();
 
 builder.Services.AddHttpContextAccessor();
 

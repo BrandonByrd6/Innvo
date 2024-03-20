@@ -1,0 +1,25 @@
+@model IEnumerable<Innvo.Models.UnitOfMeasure.UnitOfMeasureListItem>
+
+<h1 class="center-text"> All Unit of Measures</h1>
+<a asp-action="Create" class="text-primary">Create a Unit Of Measure</a>
+
+<table class="table table-striped">
+     <thead>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Abbreviation</th>
+            <th>&nbsp</th>
+        </tr>
+     </thead>
+     <tbody>
+        @foreach(var i in Model) {
+            <tr>
+                <td>@i.Id</td>
+                <td>@i.Name</td>
+                <td>@i.Abbreviation</td>
+                <td><a asp-action="Details" asp-route-id=@i.Id>Details</a> <a asp-action="Edit" asp-route-id=@i.Id>Edit</a> <a asp-action="Delete" asp-route-id=@i.Id>Delete</a></td>
+            </tr>
+        }
+     </tbody>
+</table>

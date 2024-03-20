@@ -15,12 +15,20 @@ namespace Innvo.Services.Item
         private readonly ApplicationDbContext _dbContext;
         private readonly int _userId;
 
-        public ItemService(ApplicationDbContext dbContext)
+        public ItemService(UserManager<UserEntity> userManager,
+                             SignInManager<UserEntity> signInManager,
+                             ApplicationDbContext dbContext)
         {
+            var currentUser = signInManager.Context.User;
+            var userIdClaim = userManager.GetUserId(currentUser);
+            var hasValidId = int.TryParse(userIdClaim, out _userId);
+            if (hasValidId == false)
+                throw new Exception("Attempted to build RatingService without ID claim");
+
             _dbContext = dbContext;
         }
 
-        public async Task<List<ItemListItem>> All()
+        public async Task<List<ItemListItem>> GetAll()
         {
             return await _dbContext.Items.Select(e => new ItemListItem()
             {
@@ -30,9 +38,14 @@ namespace Innvo.Services.Item
                 BarCode = e.BarCode
             }).ToListAsync();
         }
-
+        
         public async Task<bool> Create(ItemCreate req)
         {
+            var transaction = new TransactionEntity(){
+                UserId = _userId,
+                Action = "Item Created"
+            };
+
             var entity = new ItemEntity()
             {
                 Name = req.Name,
@@ -43,9 +56,28 @@ namespace Innvo.Services.Item
             };
 
             _dbContext.Items.Add(entity);
+            _dbContext.Transactions.Add(transaction);
+        
             var numberOfChanges = await _dbContext.SaveChangesAsync();
 
-            return numberOfChanges == 1;
+            if(numberOfChanges != 2) {
+                return false;
+            }
+
+            _dbContext.Inventories.Add(new InventoryEntity(){
+                ItemId = entity.Id,
+                UnitOfMesureId = req.UOMId,
+                Quantity = req.Quantity,
+            });
+
+            _dbContext.TransactionItemRecords.Add(new TransactionItemRecordEntity(){
+                TransactionId = transaction.Id,
+                ItemId = entity.Id
+            });
+
+            numberOfChanges = await _dbContext.SaveChangesAsync();
+
+            return numberOfChanges == 2;
         }
 
         public async Task<bool> Delete(int id)
@@ -60,7 +92,7 @@ namespace Innvo.Services.Item
             return numberOfChanges == 1;
         }
 
-        public async Task<ItemDetail?> Get(int id)
+        public async Task<ItemDetail?> GetOne(int id)
         {
             ItemEntity? entity = await _dbContext.Items.FindAsync(id);
 
@@ -69,6 +101,7 @@ namespace Innvo.Services.Item
 
             return new ItemDetail()
             {
+                Id = entity.Id,
                 Name = entity.Name,
                 Description = entity.Description,
                 Code = entity.Code,
@@ -82,6 +115,11 @@ namespace Innvo.Services.Item
             ItemEntity? entity = await _dbContext.Items.FindAsync(req.Id);
             if (entity == null)
                 return false;
+            
+            var transaction = new TransactionEntity(){
+                UserId = _userId,
+                Action = "Item Updated"
+            };
 
             entity.Name = req.Name;
             entity.Description = req.Description;
@@ -89,7 +127,18 @@ namespace Innvo.Services.Item
             entity.ImgUrl = req.ImgUrl;
             entity.BarCode = req.BarCode;
 
+            _dbContext.Transactions.Add(transaction);
+
             int numberOfChanges = await _dbContext.SaveChangesAsync();
+            if(numberOfChanges != 2) return false;
+
+            _dbContext.TransactionItemRecords.Add(new TransactionItemRecordEntity(){
+                TransactionId = transaction.Id,
+                ItemId = entity.Id
+            });
+
+             numberOfChanges = await _dbContext.SaveChangesAsync();
+
             return numberOfChanges == 1;
         }
     }

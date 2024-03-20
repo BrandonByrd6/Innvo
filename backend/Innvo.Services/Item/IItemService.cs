@@ -11,8 +11,8 @@ namespace Innvo.Services.Item
         //CRUD
 
         public Task<bool> Create(ItemCreate req);
-        public Task<List<ItemListItem>> All();
-        public Task<ItemDetail?> Get(int id);
+        public Task<List<ItemListItem>> GetAll();
+        public Task<ItemDetail?> GetOne(int id);
         public Task<bool> Update(ItemUpdate req);
         public Task<bool> Delete(int id);
 

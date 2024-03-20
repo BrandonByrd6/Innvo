@@ -23,5 +23,11 @@ namespace Innvo.Models.Item
         public string? ImgUrl { get; set; } = string.Empty;
 
         public string? BarCode { get; set; } = string.Empty;
+
+        [Required]
+        public int UOMId { get; set; }
+
+        [Required]
+        public int Quantity { get; set; }
     }
 }
